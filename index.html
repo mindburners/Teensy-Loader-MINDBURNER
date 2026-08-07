@@ -48,7 +48,6 @@
       margin-bottom: 6px;
       font-weight: 600;
     }
-    /* Nice progress bar */
     .progress-container {
       width: 100%;
       background: #333;
@@ -119,7 +118,7 @@
       <h2>1. Firmware</h2>
       
       <button id="loadLatestBtn">Load Latest Firmware</button>
-      <p class="note">Loads the newest .hex file from the GitHub Firmware folder.</p>
+      <p class="note">Loads MEDUSA_II_PRODUCTION.ino.hex from GitHub.</p>
 
       <p style="margin: 14px 0 6px;">— or choose a file manually —</p>
       <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
@@ -152,7 +151,7 @@
       <h2>3. Serial Monitor (optional)</h2>
       <button id="openSerialBtn">Open Serial</button>
       <button id="closeSerialBtn">Close Serial</button>
-      <textarea id="log" readonly placeholder="Serial output will appear here.."></textarea>
+      <textarea id="log" readonly placeholder="Serial output will appear here..."></textarea>
     </div>
   </div>
 
@@ -171,10 +170,8 @@
     const flasher = new TeensyFlasher();
     const serialManager = new SerialPortManager();
 
-    // ========== CHANGE THIS TO YOUR REPO ==========
-    // Example: https://raw.githubusercontent.com/YourUsername/YourRepo/main/Firmware/latest.hex
-    const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/mindburners/Teensy-Loader-MINDBURNER/main/Firmware/MEDUSA_II_PRODUCTION.ino.hex";
-    // =============================================
+    // Correct URL (folder is FIRMWARE in uppercase)
+    const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/mindburners/Teensy-Loader-MINDBURNER/main/FIRMWARE/MEDUSA_II_PRODUCTION.ino.hex";
 
     function setStatus(message) {
       const statusElem = document.getElementById('status');
@@ -206,12 +203,12 @@
     document.getElementById('loadLatestBtn').addEventListener('click', async () => {
       try {
         setStatus('Downloading latest firmware...');
-        const response = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now()); // cache bust
+        const response = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now());
         if (!response.ok) throw new Error('Could not download firmware (check the URL)');
         
         const buffer = await response.arrayBuffer();
         firmwareData = new Uint8Array(buffer);
-        firmwareName = 'latest.hex';
+        firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
         setStatus('Latest firmware loaded successfully!');
       } catch (err) {
         setStatus('Failed to load latest firmware: ' + err.message);
