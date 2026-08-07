@@ -12,69 +12,100 @@
       color: #CDCDCD;
     }
     .container {
-      max-width: 600px;
-      margin: 50px auto;
+      max-width: 620px;
+      margin: 40px auto;
       background: #1f1f1f;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      padding: 24px;
     }
     h1, h2 {
       margin-top: 0;
-      font-weight: normal;
-    }
-    input[type="file"] {
-      margin: 10px 0;
+      font-weight: 500;
     }
     button {
       background-color: #ea7aaa;
       border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
+      padding: 11px 18px;
+      border-radius: 5px;
       color: white;
       cursor: pointer;
-      margin: 5px 0;
+      margin: 6px 4px 6px 0;
+      font-size: 14px;
     }
     button:hover {
       background-color: #fa5687;
     }
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
     .section {
-      margin: 20px 0;
+      margin: 22px 0;
     }
     label {
       display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
-    progress {
+    /* Nice progress bar */
+    .progress-container {
       width: 100%;
-      height: 20px;
+      background: #333;
+      border-radius: 6px;
+      height: 22px;
+      margin-top: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    #flashProgress {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ea7aaa, #fa5687);
+      border-radius: 6px;
+      transition: width 0.15s ease;
+    }
+    #progressText {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
     textarea {
       width: 100%;
-      height: 150px;
+      height: 140px;
       margin-top: 10px;
-      background-color: #454545;
-      resize: none;
-    }
-    a:link {
-      color: #ea7aaa;
-    }
-    a:link, a:visited, a:hover, a:focus, a:active {
-      color: #bc6b8f;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #ddd;
+      padding: 8px;
+      resize: vertical;
     }
     #status {
       display: none;
       background: #272727;
-      padding: 8px;
-      margin-top: 10px;
+      padding: 10px 12px;
+      margin-top: 12px;
       white-space: pre-wrap;
-      border-radius: 4px;
+      border-radius: 5px;
+      border-left: 4px solid #ea7aaa;
     }
     .note {
-      font-size: 0.9em;
-      color: #aaa;
-      margin-top: 8px;
+      font-size: 0.88em;
+      color: #999;
+      margin-top: 6px;
+    }
+    input[type="file"] {
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -86,32 +117,37 @@
     <!-- Firmware Selection -->
     <div class="section">
       <h2>1. Firmware</h2>
-      <p>Select the .hex file you downloaded.</p>
-      <label for="firmwareInput">Select Firmware File (.hex, .ehex, .bin):</label>
+      
+      <button id="loadLatestBtn">Load Latest Firmware</button>
+      <p class="note">Loads the newest .hex file from the GitHub Firmware folder.</p>
+
+      <p style="margin: 14px 0 6px;">— or choose a file manually —</p>
       <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
     </div>
 
-    <!-- Device Selection & Flashing -->
+    <!-- Device & Flash -->
     <div class="section">
       <h2>2. Put Device into Programming Mode</h2>
-      
-      <p><strong>Recommended method (no button needed):</strong></p>
+
       <button id="resetBootloaderBtn">Reset to Bootloader</button>
-      <p class="note">This sends a command to the device. Your firmware must support the "REBOOT" command.</p>
+      <p class="note">Recommended – no need to hold the physical button (requires REBOOT support in firmware).</p>
 
-      <p style="margin-top:20px;"><strong>Alternative:</strong> Hold the physical button on the green device, then click the button below.</p>
+      <p style="margin-top: 18px;">Then select the device and upload:</p>
       <button id="selectDeviceBtn">Select Teensy Device</button>
-      <br />
       <button id="uploadFirmwareBtn">Upload Firmware</button>
-      <progress id="flashProgress" value="0" max="1"></progress>
+
+      <div class="progress-container">
+        <div id="flashProgress"></div>
+        <div id="progressText">0%</div>
+      </div>
     </div>
 
-    <!-- Status Output -->
+    <!-- Status -->
     <div class="section">
-      <div id="status">No status yet.</div>
+      <div id="status"></div>
     </div>
 
-    <!-- Serial Port -->
+    <!-- Serial Monitor -->
     <div class="section">
       <h2>3. Serial Monitor (optional)</h2>
       <button id="openSerialBtn">Open Serial</button>
@@ -135,6 +171,11 @@
     const flasher = new TeensyFlasher();
     const serialManager = new SerialPortManager();
 
+    // ========== CHANGE THIS TO YOUR REPO ==========
+    // Example: https://raw.githubusercontent.com/YourUsername/YourRepo/main/Firmware/latest.hex
+    const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO/main/Firmware/latest.hex";
+    // =============================================
+
     function setStatus(message) {
       const statusElem = document.getElementById('status');
       if (!message) {
@@ -147,13 +188,38 @@
       statusElem.textContent = message;
     }
 
+    function updateProgress(percent) {
+      const bar = document.getElementById('flashProgress');
+      const text = document.getElementById('progressText');
+      const value = Math.round(percent * 100);
+      bar.style.width = value + '%';
+      text.textContent = value + '%';
+    }
+
     serialManager.onData = (line) => {
       const logArea = document.getElementById('log');
       logArea.value += (logArea.value ? '\n' : '') + line;
       logArea.scrollTop = logArea.scrollHeight;
     };
 
-    // 1. Firmware file selection
+    // Load latest firmware from GitHub
+    document.getElementById('loadLatestBtn').addEventListener('click', async () => {
+      try {
+        setStatus('Downloading latest firmware...');
+        const response = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now()); // cache bust
+        if (!response.ok) throw new Error('Could not download firmware (check the URL)');
+        
+        const buffer = await response.arrayBuffer();
+        firmwareData = new Uint8Array(buffer);
+        firmwareName = 'latest.hex';
+        setStatus('Latest firmware loaded successfully!');
+      } catch (err) {
+        setStatus('Failed to load latest firmware: ' + err.message);
+        console.error(err);
+      }
+    });
+
+    // Manual file select
     document.getElementById('firmwareInput').addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (file) {
@@ -167,11 +233,10 @@
       }
     });
 
-    // NEW: Reset to Bootloader button
+    // Reset to Bootloader
     document.getElementById('resetBootloaderBtn').addEventListener('click', async () => {
       try {
         setStatus('Requesting serial port... (select your device)');
-        
         const port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
 
@@ -179,17 +244,16 @@
         const encoder = new TextEncoder();
         await writer.write(encoder.encode("REBOOT\n"));
         writer.releaseLock();
-
         await port.close();
 
-        setStatus('Reboot command sent! Now click "Select Teensy Device" (you should not need to hold the button).');
+        setStatus('Reboot command sent! Now click "Select Teensy Device".');
       } catch (err) {
         setStatus(`Reset error: ${err.message}`);
         console.error(err);
       }
     });
 
-    // 2. Select Teensy Device
+    // Select Device
     document.getElementById('selectDeviceBtn').addEventListener('click', async () => {
       try {
         const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
@@ -201,14 +265,13 @@
         }
       } catch (error) {
         setStatus(`Device selection error: ${error}`);
-        console.error('Device selection error:', error);
       }
     });
 
-    // 3. Upload Firmware
+    // Upload
     document.getElementById('uploadFirmwareBtn').addEventListener('click', async () => {
       if (!selectedDevice || !firmwareData) {
-        setStatus('No device or firmware selected.');
+        setStatus('Please load firmware and select the device first.');
         return;
       }
 
@@ -221,28 +284,28 @@
         const fw = new FirmwareFile(firmwareData, firmwareName);
         const blocks = await fw.buildBlocks(offset);
 
-        document.getElementById('flashProgress').value = 0;
+        updateProgress(0);
         setStatus('Flashing firmware...');
 
         await flasher.flashFirmware(blocks, selectedDevice, (progress) => {
-          document.getElementById('flashProgress').value = progress;
+          updateProgress(progress);
         });
 
-        setStatus('Flash complete!');
+        updateProgress(1);
+        setStatus('Flash complete! Device should reboot automatically.');
       } catch (err) {
         setStatus(`Flashing error: ${err}`);
-        console.error('Flashing error:', err);
+        console.error(err);
       }
     });
 
-    // Serial Monitor buttons
+    // Serial monitor
     document.getElementById('openSerialBtn').addEventListener('click', async () => {
       try {
         await serialManager.openSerialPort({ baudRate: 115200 });
         setStatus('Serial opened.');
       } catch (err) {
         setStatus(`Serial open error: ${err}`);
-        console.error('Serial open error:', err);
       }
     });
 
@@ -252,7 +315,6 @@
         setStatus('Serial closed.');
       } catch (err) {
         setStatus(`Serial close error: ${err}`);
-        console.error('Serial close error:', err);
       }
     });
   </script>
