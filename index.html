@@ -147,28 +147,26 @@
     </div>
 
     <!-- STEP 2 -->
-    <div class="step">
-      <div class="step-title">
-        <span class="step-number">2</span>
-        Update Device
-      </div>
-      <button id="updateBtn">Prepare Device</button>
-      <p class="note"><strong>Instructions:</strong></p>
-      <p class="note">1. Click the button above</p>
-      <p class="note">2. Unplug all cables (including DC power)</p>
-      <p class="note">3. Remove the top cover (or reach under with a flat tool)</p>
-      <p class="note">4. Hold the button on the green board</p>
-      <p class="note">5. Plug in the USB cable</p>
-      <p class="note">6. Release the button</p>
-      <p class="note">7. Choose the port from the popup (usually unknown device)</p>
-      
-      <p class="note">The update will start automatically.</p>
+<div class="step">
+  <div class="step-title">
+    <span class="step-number">2</span>
+    Update Device
+  </div>
+  <p class="note"><strong>First, put the device into update mode:</strong></p>
+  <p class="note">1. Unplug all cables (including DC power)</p>
+  <p class="note">2. Remove the top cover (or reach under with a flat tool)</p>
+  <p class="note">3. Hold the button on the green board</p>
+  <p class="note">4. Plug in the USB cable</p>
+  <p class="note">5. Release the button</p>
 
-      <div class="progress-container">
-        <div id="flashProgress"></div>
-        <div id="progressText">0%</div>
-      </div>
-    </div>
+  <button id="updateBtn">Select Device &amp; Update</button>
+  <p class="note">Click the button above once the device is in update mode, then choose it from the popup (usually shown as an unknown device). The update starts automatically.</p>
+
+  <div class="progress-container">
+    <div id="flashProgress"></div>
+    <div id="progressText">0%</div>
+  </div>
+</div>
 
     <div id="status"></div>
   </div>
