@@ -193,7 +193,7 @@
         if (!res.ok) throw new Error();
         firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Firmware ready. Click “Update Device”.');
+        setStatus('Firmware ready. Click “Prepare Device”.');
       } catch (e) {
         setStatus('Download failed. Try again or choose a file.');
       }
