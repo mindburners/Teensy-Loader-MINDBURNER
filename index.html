@@ -255,11 +255,31 @@
 
         await flasher.flashFirmware(blocks, selectedDevice, p => updateProgress(p));
 
-        updateProgress(1);
-        setStatus('Update complete! The device will restart. You can unplug it.');
-      } catch (e) {
-        setStatus('Update failed. Hold the button on the device and try again.');
-        console.error(e);
+updateProgress(1);
+setStatus('Update complete! The device will restart. You can unplug it.');
+
+const statusEl = document.getElementById('status');
+statusEl.style.transition = 'all 0.25s';
+let flashes = 0;
+const flashInterval = setInterval(() => {
+  if (flashes % 2 === 0) {
+    statusEl.style.background = '#ea7aaa';
+    statusEl.style.color = '#fff';
+    statusEl.style.borderLeftColor = '#fff';
+  } else {
+    statusEl.style.background = '#2a2a2a';
+    statusEl.style.color = '#e0e0e0';
+    statusEl.style.borderLeftColor = '#ea7aaa';
+  }
+  flashes++;
+  if (flashes > 7) {
+    clearInterval(flashInterval);
+    // return to normal
+    statusEl.style.background = '#2a2a2a';
+    statusEl.style.color = '#e0e0e0';
+    statusEl.style.borderLeftColor = '#ea7aaa';
+  }
+}, 280);
       }
     });
   </script>
