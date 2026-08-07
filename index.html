@@ -148,26 +148,27 @@
     </div>
 
     <!-- STEP 2 -->
-<div class="step">
-  <div class="step-title">
-    <span class="step-number">2</span>
-    Update Device
-  </div>
-  <p class="note"><strong>First, put the device into update mode:</strong></p>
-  <p class="note">1. Unplug all cables (including DC power)</p>
-  <p class="note">2. Remove the top cover (or reach under with a flat tool)</p>
-  <p class="note">3. Hold the button on the green board</p>
-  <p class="note">4. Plug in the USB cable</p>
-  <p class="note">5. Release the button</p>
+    <div class="step">
+      <div class="step-title">
+        <span class="step-number">2</span>
+        Update Device
+      </div>
 
-  <button id="updateBtn">Select Device &amp; Update</button>
-  <p class="note">Click the button above once the device is in update mode, then choose it from the popup (usually shown as an unknown device). The update starts automatically.</p>
+      <p class="note"><strong>First, put the device into update mode:</strong></p>
+      <p class="note">1. Unplug all cables (including DC power)</p>
+      <p class="note">2. Remove the top cover (or reach under with a flat tool)</p>
+      <p class="note">3. Hold the button on the green board</p>
+      <p class="note">4. Plug in the USB cable</p>
+      <p class="note">5. Release the button</p>
 
-  <div class="progress-container">
-    <div id="flashProgress"></div>
-    <div id="progressText">0%</div>
-  </div>
-</div>
+      <button id="updateBtn">Select Device &amp; Update</button>
+      <p class="note">Click the button above once the device is in update mode, then choose it from the popup. The update starts automatically.</p>
+
+      <div class="progress-container">
+        <div id="flashProgress"></div>
+        <div id="progressText">0%</div>
+      </div>
+    </div>
 
     <div id="status"></div>
   </div>
@@ -201,6 +202,7 @@
       document.getElementById('progressText').textContent = value + '%';
     }
 
+    // Load latest firmware
     document.getElementById('loadLatestBtn').addEventListener('click', async () => {
       try {
         setStatus('Downloading firmware…');
@@ -208,12 +210,13 @@
         if (!res.ok) throw new Error();
         firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Firmware ready. Follow the instructions below and click “Prepare Device”.');
+        setStatus('Firmware ready. Follow the instructions and click “Select Device & Update”.');
       } catch (e) {
         setStatus('Download failed. Try again or choose a file.');
       }
     });
 
+    // Manual file select
     document.getElementById('firmwareInput').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
@@ -221,11 +224,12 @@
       reader.onload = () => {
         firmwareData = new Uint8Array(reader.result);
         firmwareName = file.name;
-        setStatus('Firmware loaded. Follow the instructions below and click “Prepare Device”.');
+        setStatus('Firmware loaded. Follow the instructions and click “Select Device & Update”.');
       };
       reader.readAsArrayBuffer(file);
     });
 
+    // Update button
     document.getElementById('updateBtn').addEventListener('click', async () => {
       if (!firmwareData) {
         setStatus('Please load the firmware first.');
@@ -255,31 +259,36 @@
 
         await flasher.flashFirmware(blocks, selectedDevice, p => updateProgress(p));
 
-updateProgress(1);
-setStatus('Update complete! The device will restart. You can unplug it.');
+        // Success
+        updateProgress(1);
+        setStatus('Update complete! The device will restart. You can unplug it.');
 
-const statusEl = document.getElementById('status');
-statusEl.style.transition = 'all 0.25s';
-let flashes = 0;
-const flashInterval = setInterval(() => {
-  if (flashes % 2 === 0) {
-    statusEl.style.background = '#ea7aaa';
-    statusEl.style.color = '#fff';
-    statusEl.style.borderLeftColor = '#fff';
-  } else {
-    statusEl.style.background = '#2a2a2a';
-    statusEl.style.color = '#e0e0e0';
-    statusEl.style.borderLeftColor = '#ea7aaa';
-  }
-  flashes++;
-  if (flashes > 7) {
-    clearInterval(flashInterval);
-    // return to normal
-    statusEl.style.background = '#2a2a2a';
-    statusEl.style.color = '#e0e0e0';
-    statusEl.style.borderLeftColor = '#ea7aaa';
-  }
-}, 280);
+        // Flash the status message
+        const statusEl = document.getElementById('status');
+        statusEl.style.transition = 'all 0.25s';
+        let flashes = 0;
+        const flashInterval = setInterval(() => {
+          if (flashes % 2 === 0) {
+            statusEl.style.background = '#ea7aaa';
+            statusEl.style.color = '#fff';
+            statusEl.style.borderLeftColor = '#fff';
+          } else {
+            statusEl.style.background = '#2a2a2a';
+            statusEl.style.color = '#e0e0e0';
+            statusEl.style.borderLeftColor = '#ea7aaa';
+          }
+          flashes++;
+          if (flashes > 7) {
+            clearInterval(flashInterval);
+            statusEl.style.background = '#2a2a2a';
+            statusEl.style.color = '#e0e0e0';
+            statusEl.style.borderLeftColor = '#ea7aaa';
+          }
+        }, 280);
+
+      } catch (e) {
+        setStatus('Update failed. Hold the button on the device and try again.');
+        console.error(e);
       }
     });
   </script>
