@@ -73,10 +73,6 @@
     button:hover {
       background: #fa5687;
     }
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
     .progress-container {
       width: 100%;
       background: #333;
@@ -140,7 +136,7 @@
         Load the Firmware
       </div>
       <button id="loadLatestBtn">Load Latest Firmware</button>
-      <p class="note">This downloads the newest version automatically.</p>
+      <p class="note">Downloads the newest version automatically.</p>
       
       <p style="margin: 16px 0 6px; color:#888;">or choose a file yourself:</p>
       <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
@@ -150,19 +146,20 @@
     <div class="step">
       <div class="step-title">
         <span class="step-number">2</span>
-        Prepare & Select Device
+        Prepare the Device
       </div>
-      <button id="prepareAndSelectBtn">Prepare Device & Select It</button>
-      <p class="note">Click once. A popup will appear — choose your device.</p>
+      <button id="prepareBtn">Prepare Device</button>
+      <p class="note">Click this, then choose your device in the popup.</p>
     </div>
 
     <!-- STEP 3 -->
     <div class="step">
       <div class="step-title">
         <span class="step-number">3</span>
-        Start the Update
+        Update
       </div>
-      <button id="uploadFirmwareBtn">Start Update</button>
+      <button id="updateBtn">Select Device & Start Update</button>
+      <p class="note">Click this right after Step 2. Choose the device in the popup.</p>
 
       <div class="progress-container">
         <div id="flashProgress"></div>
@@ -170,7 +167,6 @@
       </div>
     </div>
 
-    <!-- Status -->
     <div id="status"></div>
   </div>
 
@@ -184,122 +180,106 @@
     let selectedDevice = null;
     let firmwareData = null;
     let firmwareName = null;
-
     const flasher = new TeensyFlasher();
 
     const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/mindburners/Teensy-Loader-MINDBURNER/main/FIRMWARE/MEDUSA_II_PRODUCTION.ino.hex";
 
-    function setStatus(message) {
+    function setStatus(msg) {
       const el = document.getElementById('status');
-      if (!message) {
+      if (!msg) {
         el.style.display = 'none';
-        el.textContent = '';
         return;
       }
       el.style.display = 'block';
-      el.textContent = message;
-      console.log(message);
+      el.textContent = msg;
+      console.log(msg);
     }
 
-    function updateProgress(percent) {
-      const value = Math.min(100, Math.round(percent * 100));
+    function updateProgress(p) {
+      const value = Math.min(100, Math.round(p * 100));
       document.getElementById('flashProgress').style.width = value + '%';
       document.getElementById('progressText').textContent = value + '%';
     }
 
-    // STEP 1 – Load latest
+    // Step 1
     document.getElementById('loadLatestBtn').addEventListener('click', async () => {
       try {
-        setStatus('Downloading latest firmware… please wait');
-        const response = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now());
-        if (!response.ok) throw new Error('Download failed');
-
-        const buffer = await response.arrayBuffer();
-        firmwareData = new Uint8Array(buffer);
+        setStatus('Downloading latest firmware…');
+        const res = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now());
+        if (!res.ok) throw new Error();
+        firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Firmware ready! Continue to Step 2.');
-      } catch (err) {
-        setStatus('Could not download firmware. Please try again or choose a file manually.');
-        console.error(err);
+        setStatus('Firmware ready. Continue to Step 2.');
+      } catch (e) {
+        setStatus('Download failed. Try again or choose a file manually.');
       }
     });
 
-    // Manual file
-    document.getElementById('firmwareInput').addEventListener('change', (e) => {
+    document.getElementById('firmwareInput').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
         firmwareData = new Uint8Array(reader.result);
         firmwareName = file.name;
-        setStatus('Firmware loaded: ' + firmwareName + ' — continue to Step 2.');
+        setStatus('Firmware loaded. Continue to Step 2.');
       };
       reader.readAsArrayBuffer(file);
     });
 
-    // STEP 2 – Prepare + automatically open Select Device
-    document.getElementById('prepareAndSelectBtn').addEventListener('click', async () => {
+    // Step 2 – only prepare
+    document.getElementById('prepareBtn').addEventListener('click', async () => {
       try {
-        setStatus('Preparing device… select it in the first popup');
-
-        // 1. Send REBOOT command
+        setStatus('Select your device in the popup…');
         const port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
         const writer = port.writable.getWriter();
         await writer.write(new TextEncoder().encode("REBOOT\n"));
         writer.releaseLock();
         await port.close();
-
-        setStatus('Device is switching… a second popup will appear shortly. Choose your device there.');
-
-        // 2. Wait a short moment then automatically ask for the HID device
-        await new Promise(r => setTimeout(r, 1200));
-
-        const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
-        if (devices && devices.length > 0) {
-          selectedDevice = devices[0];
-          setStatus('Device selected successfully! Now click “Start Update”.');
-        } else {
-          setStatus('No device was selected. Please try Step 2 again.');
-        }
-      } catch (err) {
-        setStatus('Something went wrong. Please try again. (You can also hold the button on the device if needed.)');
-        console.error(err);
+        setStatus('Device prepared. Now quickly click “Select Device & Start Update”.');
+      } catch (e) {
+        setStatus('Could not prepare device. Try again.');
       }
     });
 
-    // STEP 3 – Upload
-    document.getElementById('uploadFirmwareBtn').addEventListener('click', async () => {
+    // Step 3 – select + update in one go
+    document.getElementById('updateBtn').addEventListener('click', async () => {
       if (!firmwareData) {
         setStatus('Please load the firmware first (Step 1).');
         return;
       }
-      if (!selectedDevice) {
-        setStatus('Please prepare and select the device first (Step 2).');
-        return;
-      }
-
-      let offset = 0x00000000;
-      if (selectedDevice.productId === 0x0478 || selectedDevice.productId === 0x0479) {
-        offset = 0x60000000;
-      }
 
       try {
-        setStatus('Updating… please wait. Do not unplug the device.');
+        setStatus('Select your device in the popup…');
+        const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
+        if (!devices || devices.length === 0) {
+          setStatus('No device selected.');
+          return;
+        }
+        selectedDevice = devices[0];
+
+        // Start update immediately
+        setStatus('Updating… do not unplug the device.');
         updateProgress(0);
+
+        let offset = 0x00000000;
+        if (selectedDevice.productId === 0x0478 || selectedDevice.productId === 0x0479) {
+          offset = 0x60000000;
+        }
 
         const fw = new FirmwareFile(firmwareData, firmwareName);
         const blocks = await fw.buildBlocks(offset);
 
-        await flasher.flashFirmware(blocks, selectedDevice, (progress) => {
-          updateProgress(progress);
+        await flasher.flashFirmware(blocks, selectedDevice, (p) => {
+          updateProgress(p);
         });
 
         updateProgress(1);
-        setStatus('Update complete! Your device will restart automatically. You can unplug it now.');
-      } catch (err) {
-        setStatus('Update failed. Please try again.');
-        console.error(err);
+        setStatus('Update complete! The device will restart. You can unplug it.');
+      } catch (e) {
+        setStatus('Update failed. Try preparing the device again (Step 2) and retry.');
+        console.error(e);
       }
     });
   </script>
