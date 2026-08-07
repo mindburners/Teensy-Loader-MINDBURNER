@@ -19,11 +19,21 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       padding: 28px 32px;
     }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
     h1 {
-      margin: 0 0 6px 0;
+      margin: 0;
       font-size: 1.55rem;
       font-weight: 600;
       color: #fff;
+    }
+    .logo {
+      height: 64px;
+      width: auto;
     }
     .subtitle {
       color: #aaa;
@@ -108,7 +118,7 @@
     .note {
       font-size: 0.9rem;
       color: #bbb;
-      margin-top: 10px;
+      margin-top: 6px;
       line-height: 1.5;
     }
     input[type="file"] {
@@ -119,7 +129,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>MINDBURNER MIDI MEDUSA II</h1>
+    <div class="header">
+      <h1>MINDBURNER MIDI MEDUSA II</h1>
+      <img src="medusa-logo.png" alt="Medusa Logo" class="logo">
+    </div>
     <div class="subtitle">Firmware Updater</div>
 
     <!-- STEP 1 -->
@@ -140,15 +153,15 @@
         Update Device
       </div>
       <button id="updateBtn">Prepare Device</button>
-      <p class="note">Unplug all cables, INCLUDING DC power</p>
-      <p class="note">
-      <p class="note">remove top cover or reach under with a flat tool</p>
-      <p class="note">
-        Hold the button on top of green board</p>
-        <p class="note">Plug in USB cable</p>
-        <p class="note">Then Release button</p>
-        <p class="note">Choose your device in the popup</p>
-         <p class="note">The update will start automatically</p>
+
+      <p class="note"><strong>Instructions:</strong></p>
+      <p class="note">1. Unplug all cables (including DC power)</p>
+      <p class="note">2. Remove the top cover (or reach under with a flat tool)</p>
+      <p class="note">3. Hold the button on the green board</p>
+      <p class="note">4. Plug in the USB cable</p>
+      <p class="note">5. Release the button</p>
+      <p class="note">6. Click the button above and choose your device in the popup</p>
+      <p class="note">The update will start automatically</p>
 
       <div class="progress-container">
         <div id="flashProgress"></div>
@@ -188,7 +201,6 @@
       document.getElementById('progressText').textContent = value + '%';
     }
 
-    // Load latest
     document.getElementById('loadLatestBtn').addEventListener('click', async () => {
       try {
         setStatus('Downloading firmware…');
@@ -196,13 +208,12 @@
         if (!res.ok) throw new Error();
         firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Firmware ready. Click “Prepare Device”.');
+        setStatus('Firmware ready. Follow the instructions below and click “Prepare Device”.');
       } catch (e) {
         setStatus('Download failed. Try again or choose a file.');
       }
     });
 
-    // Manual file
     document.getElementById('firmwareInput').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
@@ -210,12 +221,11 @@
       reader.onload = () => {
         firmwareData = new Uint8Array(reader.result);
         firmwareName = file.name;
-        setStatus('Firmware loaded. Click “Update Device”.');
+        setStatus('Firmware loaded. Follow the instructions below and click “Prepare Device”.');
       };
       reader.readAsArrayBuffer(file);
     });
 
-    // Single button – only one popup
     document.getElementById('updateBtn').addEventListener('click', async () => {
       if (!firmwareData) {
         setStatus('Please load the firmware first.');
@@ -225,15 +235,13 @@
       try {
         setStatus('Choose your device in the popup…');
 
-        // Only the HID selection (bootloader)
         const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
         if (!devices || devices.length === 0) {
-          setStatus('No device selected. Hold the button on the device and try again.');
+          setStatus('No device selected. Hold the button and try again.');
           return;
         }
         const selectedDevice = devices[0];
 
-        // Start update immediately
         setStatus('Updating… do not unplug the device.');
         updateProgress(0);
 
