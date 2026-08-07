@@ -2,138 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MINDBURNER MIDI MEDUSA II</title>
+  <title>MINDBURNER MIDI MEDUSA II – Firmware Update</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #181818;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #121212;
       margin: 0;
       padding: 0;
-      color: #CDCDCD;
+      color: #e0e0e0;
     }
     .container {
-      max-width: 620px;
+      max-width: 560px;
       margin: 40px auto;
-      background: #1f1f1f;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      padding: 24px;
+      background: #1e1e1e;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      padding: 28px 32px;
     }
-    h1, h2 {
-      margin-top: 0;
-      font-weight: 500;
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .subtitle {
+      color: #aaa;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+    .step {
+      margin-bottom: 26px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #333;
+    }
+    .step:last-of-type {
+      border-bottom: none;
+    }
+    .step-number {
+      display: inline-block;
+      background: #ea7aaa;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 26px;
+      font-weight: 600;
+      margin-right: 10px;
+      font-size: 0.9rem;
+    }
+    .step-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
     }
     button {
-      background-color: #ea7aaa;
+      background: #ea7aaa;
       border: none;
-      padding: 11px 18px;
-      border-radius: 5px;
+      padding: 13px 22px;
+      border-radius: 6px;
       color: white;
       cursor: pointer;
-      margin: 6px 4px 6px 0;
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      margin: 6px 8px 6px 0;
     }
     button:hover {
-      background-color: #fa5687;
-    }
-    button:disabled {
-      background-color: #555;
-      cursor: not-allowed;
-    }
-    .section {
-      margin: 22px 0;
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
+      background: #fa5687;
     }
     .progress-container {
       width: 100%;
       background: #333;
-      border-radius: 6px;
-      height: 22px;
-      margin-top: 12px;
+      border-radius: 8px;
+      height: 28px;
+      margin-top: 16px;
       overflow: hidden;
       position: relative;
     }
     #flashProgress {
       width: 0%;
       height: 100%;
-      background: linear-gradient(90deg, #ea7aaa, #fa5687);
-      border-radius: 6px;
-      transition: width 0.15s ease;
+      background: linear-gradient(90deg, #ea7aaa, #ff6b9d);
+      border-radius: 8px;
+      transition: width 0.2s ease;
     }
     #progressText {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: #fff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-    }
-    textarea {
-      width: 100%;
-      height: 140px;
-      margin-top: 10px;
-      background-color: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 4px;
-      color: #ddd;
-      padding: 8px;
-      resize: vertical;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     #status {
       display: none;
-      background: #272727;
-      padding: 10px 12px;
-      margin-top: 12px;
-      white-space: pre-wrap;
-      border-radius: 5px;
+      background: #2a2a2a;
+      padding: 12px 16px;
+      margin-top: 20px;
+      border-radius: 6px;
       border-left: 4px solid #ea7aaa;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
     .note {
-      font-size: 0.88em;
-      color: #999;
-      margin-top: 6px;
+      font-size: 0.9rem;
+      color: #bbb;
+      margin-top: 10px;
+      line-height: 1.5;
     }
     input[type="file"] {
-      margin: 8px 0;
+      margin-top: 10px;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>MINDBURNER MIDI MEDUSA II</h1>
-    <p>Update the firmware on your device.</p>
+    <div class="subtitle">Firmware Updater</div>
 
-    <!-- Firmware Selection -->
-    <div class="section">
-      <h2>1. Firmware</h2>
-      
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-title">
+        <span class="step-number">1</span>
+        Load Firmware
+      </div>
       <button id="loadLatestBtn">Load Latest Firmware</button>
-      <p class="note">Loads MEDUSA_II_PRODUCTION.ino.hex from GitHub.</p>
-
-      <p style="margin: 14px 0 6px;">— or choose a file manually —</p>
+      <p class="note">or choose a file:</p>
       <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
     </div>
 
-    <!-- Device & Flash -->
-    <div class="section">
-      <h2>2. Put Device into Programming Mode</h2>
-
-      <button id="resetBootloaderBtn">Reset to Bootloader</button>
-      <p class="note">Recommended – no need to hold the physical button (requires REBOOT support in firmware).</p>
-
-      <p style="margin-top: 18px;">Then select the device and upload:</p>
-      <button id="selectDeviceBtn">Select Teensy Device</button>
-      <button id="uploadFirmwareBtn">Upload Firmware</button>
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-title">
+        <span class="step-number">2</span>
+        Update Device
+      </div>
+      <button id="updateBtn">Update Device</button>
+      <p class="note">
+        Click the button and choose your device in the popup.<br>
+        The update will start automatically.
+      </p>
 
       <div class="progress-container">
         <div id="flashProgress"></div>
@@ -141,177 +151,102 @@
       </div>
     </div>
 
-    <!-- Status -->
-    <div class="section">
-      <div id="status"></div>
-    </div>
-
-    <!-- Serial Monitor -->
-    <div class="section">
-      <h2>3. Serial Monitor (optional)</h2>
-      <button id="openSerialBtn">Open Serial</button>
-      <button id="closeSerialBtn">Close Serial</button>
-      <textarea id="log" readonly placeholder="Serial output will appear here..."></textarea>
-    </div>
+    <div id="status"></div>
   </div>
 
   <script type="module">
     import {
       FirmwareFile,
       TeensyFlasher,
-      SerialPortManager,
       TEENSY_DEVICE_FILTERS
     } from './Teensy-Loader.js';
 
-    let selectedDevice = null;
     let firmwareData = null;
     let firmwareName = null;
-
     const flasher = new TeensyFlasher();
-    const serialManager = new SerialPortManager();
 
-    // Correct URL (folder is FIRMWARE in uppercase)
     const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/mindburners/Teensy-Loader-MINDBURNER/main/FIRMWARE/MEDUSA_II_PRODUCTION.ino.hex";
 
-    function setStatus(message) {
-      const statusElem = document.getElementById('status');
-      if (!message) {
-        statusElem.style.display = 'none';
-        statusElem.textContent = '';
+    function setStatus(msg) {
+      const el = document.getElementById('status');
+      if (!msg) {
+        el.style.display = 'none';
         return;
       }
-      console.log(message);
-      statusElem.style.display = 'block';
-      statusElem.textContent = message;
+      el.style.display = 'block';
+      el.textContent = msg;
     }
 
-    function updateProgress(percent) {
-      const bar = document.getElementById('flashProgress');
-      const text = document.getElementById('progressText');
-      const value = Math.round(percent * 100);
-      bar.style.width = value + '%';
-      text.textContent = value + '%';
+    function updateProgress(p) {
+      const value = Math.min(100, Math.round(p * 100));
+      document.getElementById('flashProgress').style.width = value + '%';
+      document.getElementById('progressText').textContent = value + '%';
     }
 
-    serialManager.onData = (line) => {
-      const logArea = document.getElementById('log');
-      logArea.value += (logArea.value ? '\n' : '') + line;
-      logArea.scrollTop = logArea.scrollHeight;
-    };
-
-    // Load latest firmware from GitHub
+    // Load latest
     document.getElementById('loadLatestBtn').addEventListener('click', async () => {
       try {
-        setStatus('Downloading latest firmware...');
-        const response = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now());
-        if (!response.ok) throw new Error('Could not download firmware (check the URL)');
-        
-        const buffer = await response.arrayBuffer();
-        firmwareData = new Uint8Array(buffer);
+        setStatus('Downloading firmware…');
+        const res = await fetch(LATEST_FIRMWARE_URL + '?t=' + Date.now());
+        if (!res.ok) throw new Error();
+        firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Latest firmware loaded successfully!');
-      } catch (err) {
-        setStatus('Failed to load latest firmware: ' + err.message);
-        console.error(err);
+        setStatus('Firmware ready. Click “Update Device”.');
+      } catch (e) {
+        setStatus('Download failed. Try again or choose a file.');
       }
     });
 
-    // Manual file select
-    document.getElementById('firmwareInput').addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          firmwareData = new Uint8Array(reader.result);
-          firmwareName = file.name;
-          setStatus(`Firmware loaded: ${firmwareName}`);
-        };
-        reader.readAsArrayBuffer(file);
-      }
+    // Manual file
+    document.getElementById('firmwareInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        firmwareData = new Uint8Array(reader.result);
+        firmwareName = file.name;
+        setStatus('Firmware loaded. Click “Update Device”.');
+      };
+      reader.readAsArrayBuffer(file);
     });
 
-    // Reset to Bootloader
-    document.getElementById('resetBootloaderBtn').addEventListener('click', async () => {
-      try {
-        setStatus('Requesting serial port... (select your device)');
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
-
-        const writer = port.writable.getWriter();
-        const encoder = new TextEncoder();
-        await writer.write(encoder.encode("REBOOT\n"));
-        writer.releaseLock();
-        await port.close();
-
-        setStatus('Reboot command sent! Now click "Select Teensy Device".');
-      } catch (err) {
-        setStatus(`Reset error: ${err.message}`);
-        console.error(err);
-      }
-    });
-
-    // Select Device
-    document.getElementById('selectDeviceBtn').addEventListener('click', async () => {
-      try {
-        const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
-        if (devices && devices.length > 0) {
-          selectedDevice = devices[0];
-          setStatus(`Device selected: ${selectedDevice.productName || 'Unknown Teensy'}`);
-        } else {
-          setStatus('No device selected.');
-        }
-      } catch (error) {
-        setStatus(`Device selection error: ${error}`);
-      }
-    });
-
-    // Upload
-    document.getElementById('uploadFirmwareBtn').addEventListener('click', async () => {
-      if (!selectedDevice || !firmwareData) {
-        setStatus('Please load firmware and select the device first.');
+    // Single button – only one popup
+    document.getElementById('updateBtn').addEventListener('click', async () => {
+      if (!firmwareData) {
+        setStatus('Please load the firmware first.');
         return;
       }
 
-      let offset = 0x00000000;
-      if (selectedDevice.productId === 0x0478 || selectedDevice.productId === 0x0479) {
-        offset = 0x60000000;
-      }
-
       try {
+        setStatus('Choose your device in the popup…');
+
+        // Only the HID selection (bootloader)
+        const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
+        if (!devices || devices.length === 0) {
+          setStatus('No device selected. Hold the button on the device and try again.');
+          return;
+        }
+        const selectedDevice = devices[0];
+
+        // Start update immediately
+        setStatus('Updating… do not unplug the device.');
+        updateProgress(0);
+
+        let offset = 0x00000000;
+        if (selectedDevice.productId === 0x0478 || selectedDevice.productId === 0x0479) {
+          offset = 0x60000000;
+        }
+
         const fw = new FirmwareFile(firmwareData, firmwareName);
         const blocks = await fw.buildBlocks(offset);
 
-        updateProgress(0);
-        setStatus('Flashing firmware...');
-
-        await flasher.flashFirmware(blocks, selectedDevice, (progress) => {
-          updateProgress(progress);
-        });
+        await flasher.flashFirmware(blocks, selectedDevice, p => updateProgress(p));
 
         updateProgress(1);
-        setStatus('Flash complete! Device should reboot automatically.');
-      } catch (err) {
-        setStatus(`Flashing error: ${err}`);
-        console.error(err);
-      }
-    });
-
-    // Serial monitor
-    document.getElementById('openSerialBtn').addEventListener('click', async () => {
-      try {
-        await serialManager.openSerialPort({ baudRate: 115200 });
-        setStatus('Serial opened.');
-      } catch (err) {
-        setStatus(`Serial open error: ${err}`);
-      }
-    });
-
-    document.getElementById('closeSerialBtn').addEventListener('click', async () => {
-      try {
-        await serialManager.closeSerialPort();
-        setStatus('Serial closed.');
-      } catch (err) {
-        setStatus(`Serial close error: ${err}`);
+        setStatus('Update complete! The device will restart. You can unplug it.');
+      } catch (e) {
+        setStatus('Update failed. Hold the button on the device and try again.');
+        console.error(e);
       }
     });
   </script>
