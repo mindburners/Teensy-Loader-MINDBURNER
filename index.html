@@ -150,19 +150,18 @@
     <div class="step">
       <div class="step-title">
         <span class="step-number">2</span>
-        Prepare the Device
+        Prepare & Select Device
       </div>
-      <button id="resetBootloaderBtn">Prepare Device for Update</button>
-      <p class="note">Click this first. Then continue to step 3.</p>
+      <button id="prepareAndSelectBtn">Prepare Device & Select It</button>
+      <p class="note">Click once. A popup will appear — choose your device.</p>
     </div>
 
     <!-- STEP 3 -->
     <div class="step">
       <div class="step-title">
         <span class="step-number">3</span>
-        Update the Device
+        Start the Update
       </div>
-      <button id="selectDeviceBtn">Select Device</button>
       <button id="uploadFirmwareBtn">Start Update</button>
 
       <div class="progress-container">
@@ -179,7 +178,6 @@
     import {
       FirmwareFile,
       TeensyFlasher,
-      SerialPortManager,
       TEENSY_DEVICE_FILTERS
     } from './Teensy-Loader.js';
 
@@ -188,7 +186,6 @@
     let firmwareName = null;
 
     const flasher = new TeensyFlasher();
-    const serialManager = new SerialPortManager();
 
     const LATEST_FIRMWARE_URL = "https://raw.githubusercontent.com/mindburners/Teensy-Loader-MINDBURNER/main/FIRMWARE/MEDUSA_II_PRODUCTION.ino.hex";
 
@@ -205,7 +202,6 @@
     }
 
     function updateProgress(percent) {
-      // percent comes as 0 → 1
       const value = Math.min(100, Math.round(percent * 100));
       document.getElementById('flashProgress').style.width = value + '%';
       document.getElementById('progressText').textContent = value + '%';
@@ -241,38 +237,33 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // STEP 2 – Prepare (reboot to bootloader)
-    document.getElementById('resetBootloaderBtn').addEventListener('click', async () => {
+    // STEP 2 – Prepare + automatically open Select Device
+    document.getElementById('prepareAndSelectBtn').addEventListener('click', async () => {
       try {
-        setStatus('Please select your device in the popup…');
+        setStatus('Preparing device… select it in the first popup');
+
+        // 1. Send REBOOT command
         const port = await navigator.serial.requestPort();
         await port.open({ baudRate: 115200 });
-
         const writer = port.writable.getWriter();
         await writer.write(new TextEncoder().encode("REBOOT\n"));
         writer.releaseLock();
         await port.close();
 
-        setStatus('Device is ready. Now go to Step 3 and click “Select Device”.');
-      } catch (err) {
-        setStatus('Could not prepare device. Make sure it is plugged in and try again.');
-        console.error(err);
-      }
-    });
+        setStatus('Device is switching… a second popup will appear shortly. Choose your device there.');
 
-    // STEP 3 – Select device
-    document.getElementById('selectDeviceBtn').addEventListener('click', async () => {
-      try {
-        setStatus('Select your device in the popup…');
+        // 2. Wait a short moment then automatically ask for the HID device
+        await new Promise(r => setTimeout(r, 1200));
+
         const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
         if (devices && devices.length > 0) {
           selectedDevice = devices[0];
-          setStatus('Device selected! Now click “Start Update”.');
+          setStatus('Device selected successfully! Now click “Start Update”.');
         } else {
-          setStatus('No device was selected.');
+          setStatus('No device was selected. Please try Step 2 again.');
         }
       } catch (err) {
-        setStatus('Could not select device. Try again.');
+        setStatus('Something went wrong. Please try again. (You can also hold the button on the device if needed.)');
         console.error(err);
       }
     });
@@ -284,7 +275,7 @@
         return;
       }
       if (!selectedDevice) {
-        setStatus('Please select the device first (Step 3).');
+        setStatus('Please prepare and select the device first (Step 2).');
         return;
       }
 
@@ -305,9 +296,9 @@
         });
 
         updateProgress(1);
-        setStatus('Update complete! Your device will restart automatically.');
+        setStatus('Update complete! Your device will restart automatically. You can unplug it now.');
       } catch (err) {
-        setStatus('Update failed. Please try again or hold the button on the device and retry.');
+        setStatus('Update failed. Please try again.');
         console.error(err);
       }
     });
