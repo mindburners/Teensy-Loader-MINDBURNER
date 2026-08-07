@@ -106,9 +106,10 @@
       line-height: 1.4;
     }
     .note {
-      font-size: 0.88rem;
-      color: #999;
-      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #bbb;
+      margin-top: 10px;
+      line-height: 1.5;
     }
     input[type="file"] {
       margin-top: 10px;
@@ -138,12 +139,10 @@
         <span class="step-number">2</span>
         Update Device
       </div>
-      <button id="updateBtn">Prepare & Update</button>
+      <button id="updateBtn">Update Device</button>
       <p class="note">
-        1. Click the button<br>
-        2. Choose the device in the first popup<br>
-        3. Choose the device again in the second popup<br>
-        4. Wait for the update to finish
+        Click the button and choose your device in the popup.<br>
+        The update will start automatically.
       </p>
 
       <div class="progress-container">
@@ -192,7 +191,7 @@
         if (!res.ok) throw new Error();
         firmwareData = new Uint8Array(await res.arrayBuffer());
         firmwareName = 'MEDUSA_II_PRODUCTION.ino.hex';
-        setStatus('Firmware ready. Click “Prepare & Update”.');
+        setStatus('Firmware ready. Click “Update Device”.');
       } catch (e) {
         setStatus('Download failed. Try again or choose a file.');
       }
@@ -206,12 +205,12 @@
       reader.onload = () => {
         firmwareData = new Uint8Array(reader.result);
         firmwareName = file.name;
-        setStatus('Firmware loaded. Click “Prepare & Update”.');
+        setStatus('Firmware loaded. Click “Update Device”.');
       };
       reader.readAsArrayBuffer(file);
     });
 
-    // Single button: Prepare + Select + Update
+    // Single button – only one popup
     document.getElementById('updateBtn').addEventListener('click', async () => {
       if (!firmwareData) {
         setStatus('Please load the firmware first.');
@@ -219,30 +218,18 @@
       }
 
       try {
-        // 1. Prepare (serial)
-        setStatus('First popup – choose your device');
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
-        const writer = port.writable.getWriter();
-        await writer.write(new TextEncoder().encode("REBOOT\n"));
-        writer.releaseLock();
-        await port.close();
+        setStatus('Choose your device in the popup…');
 
-        // Short pause so the device can switch to bootloader
-        setStatus('Switching… second popup will appear');
-        await new Promise(r => setTimeout(r, 1000));
-
-        // 2. Select HID device
-        setStatus('Second popup – choose your device again');
+        // Only the HID selection (bootloader)
         const devices = await navigator.hid.requestDevice({ filters: TEENSY_DEVICE_FILTERS });
         if (!devices || devices.length === 0) {
-          setStatus('No device selected. Please try again.');
+          setStatus('No device selected. Hold the button on the device and try again.');
           return;
         }
         const selectedDevice = devices[0];
 
-        // 3. Flash
-        setStatus('Updating… do not unplug');
+        // Start update immediately
+        setStatus('Updating… do not unplug the device.');
         updateProgress(0);
 
         let offset = 0x00000000;
@@ -256,9 +243,9 @@
         await flasher.flashFirmware(blocks, selectedDevice, p => updateProgress(p));
 
         updateProgress(1);
-        setStatus('Update complete! Device will restart. You can unplug it.');
+        setStatus('Update complete! The device will restart. You can unplug it.');
       } catch (e) {
-        setStatus('Something went wrong. Please try again.');
+        setStatus('Update failed. Hold the button on the device and try again.');
         console.error(e);
       }
     });
