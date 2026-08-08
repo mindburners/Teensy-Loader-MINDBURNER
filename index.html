@@ -122,6 +122,13 @@
       margin-top: 6px;
       line-height: 1.5;
     }
+    .note a {
+      color: #ea7aaa;
+      text-decoration: none;
+    }
+    .note a:hover {
+      text-decoration: underline;
+    }
     input[type="file"] {
       margin-top: 10px;
       color: #ccc;
@@ -144,7 +151,14 @@
       </div>
       <button id="loadLatestBtn">Load Latest Firmware</button>
       <p class="note">or choose a file:</p>
+      
       <input type="file" id="firmwareInput" accept=".hex,.ehex,.bin" />
+
+      <p class="note">
+        Prefer PJRC's official Teensy Loader app instead of this page?
+        <a href="https://github.com/mindburners/Teensy-Loader-MINDBURNER/tree/main/FIRMWARE" target="_blank" rel="noopener">Browse the FIRMWARE folder</a>
+        to download a .hex file manually.
+      </p>
     </div>
 
     <!-- STEP 2 -->
